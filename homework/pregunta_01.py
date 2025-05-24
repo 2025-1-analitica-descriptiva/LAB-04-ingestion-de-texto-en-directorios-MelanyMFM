@@ -4,7 +4,9 @@
 """
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
-
+import os
+import zipfile
+import pandas as pd
 
 def pregunta_01():
     """
@@ -71,3 +73,32 @@ def pregunta_01():
 
 
     """
+    os.makedirs("files/output", exist_ok=True)
+    
+    if not os.path.exists("files/input"):
+        with zipfile.ZipFile("files/input.zip", "r") as zip_ref:
+            zip_ref.extractall("files")
+    
+    for dataset_type in ["train", "test"]:
+        data = []
+        
+        for sentiment in ["positive", "negative", "neutral"]:
+            sentiment_dir = os.path.join("files/input", dataset_type, sentiment)
+            
+            for filename in os.listdir(sentiment_dir):
+                if filename.endswith(".txt"):
+                    file_path = os.path.join(sentiment_dir, filename)
+                    
+                    with open(file_path, "r", encoding="utf-8") as file:
+                        phrase = file.read().strip()
+                    
+                    data.append({
+                        "phrase": phrase,
+                        "target": sentiment
+                    })
+        
+        df = pd.DataFrame(data)
+        output_file = os.path.join("files/output", f"{dataset_type}_dataset.csv")
+        df.to_csv(output_file, index=False)
+
+    return
